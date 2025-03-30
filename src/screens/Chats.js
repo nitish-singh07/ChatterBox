@@ -1,8 +1,8 @@
-import PropTypes from 'prop-types';
-import { Ionicons } from '@expo/vector-icons';
-import React, { useState, useEffect, useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import PropTypes from "prop-types";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useState, useEffect, useCallback } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import {
   doc,
   where,
@@ -12,7 +12,7 @@ import {
   deleteDoc,
   collection,
   onSnapshot,
-} from 'firebase/firestore';
+} from "firebase/firestore";
 import {
   Text,
   View,
@@ -22,11 +22,11 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-} from 'react-native';
+} from "react-native";
 
-import { colors } from '../config/constants';
-import ContactRow from '../components/ContactRow';
-import { auth, database } from '../config/firebase';
+import { colors } from "../config/constants";
+import ContactRow from "../components/ContactRow";
+import { auth, database } from "../config/firebase";
 
 const Chats = ({ setUnreadCount }) => {
   const navigation = useNavigation();
@@ -40,25 +40,29 @@ const Chats = ({ setUnreadCount }) => {
       // Load unread messages from AsyncStorage when screen is focused
       const loadNewMessages = async () => {
         try {
-          const storedMessages = await AsyncStorage.getItem('newMessages');
-          const parsedMessages = storedMessages ? JSON.parse(storedMessages) : {};
+          const storedMessages = await AsyncStorage.getItem("newMessages");
+          const parsedMessages = storedMessages
+            ? JSON.parse(storedMessages)
+            : {};
           setNewMessages(parsedMessages);
-          setUnreadCount(Object.values(parsedMessages).reduce((total, num) => total + num, 0));
+          setUnreadCount(
+            Object.values(parsedMessages).reduce((total, num) => total + num, 0)
+          );
         } catch (error) {
-          console.log('Error loading new messages from storage', error);
+          console.log("Error loading new messages from storage", error);
         }
       };
 
       // Set up Firestore listener for chat updates
-      const collectionRef = collection(database, 'chats');
+      const collectionRef = collection(database, "chats");
       const q = query(
         collectionRef,
-        where('users', 'array-contains', {
+        where("users", "array-contains", {
           email: auth?.currentUser?.email,
           name: auth?.currentUser?.displayName,
           deletedFromChat: false,
         }),
-        orderBy('lastUpdated', 'desc')
+        orderBy("lastUpdated", "desc")
       );
 
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -66,7 +70,7 @@ const Chats = ({ setUnreadCount }) => {
         setLoading(false);
 
         snapshot.docChanges().forEach((change) => {
-          if (change.type === 'modified') {
+          if (change.type === "modified") {
             const chatId = change.doc.id;
             const { messages } = change.doc.data();
             const firstMessage = messages[0];
@@ -74,10 +78,19 @@ const Chats = ({ setUnreadCount }) => {
             // Increase unread count if the first message is from someone else
             if (firstMessage.user._id !== auth?.currentUser?.email) {
               setNewMessages((prev) => {
-                const updatedMessages = { ...prev, [chatId]: (prev[chatId] || 0) + 1 };
-                AsyncStorage.setItem('newMessages', JSON.stringify(updatedMessages));
+                const updatedMessages = {
+                  ...prev,
+                  [chatId]: (prev[chatId] || 0) + 1,
+                };
+                AsyncStorage.setItem(
+                  "newMessages",
+                  JSON.stringify(updatedMessages)
+                );
                 setUnreadCount(
-                  Object.values(updatedMessages).reduce((total, num) => total + num, 0)
+                  Object.values(updatedMessages).reduce(
+                    (total, num) => total + num,
+                    0
+                  )
                 );
                 return updatedMessages;
               });
@@ -103,14 +116,18 @@ const Chats = ({ setUnreadCount }) => {
     }
 
     if (currentUser?.displayName) {
-      return users[0].name === currentUser.displayName ? users[1].name : users[0].name;
+      return users[0].name === currentUser.displayName
+        ? users[1].name
+        : users[0].name;
     }
 
     if (currentUser?.email) {
-      return users[0].email === currentUser.email ? users[1].email : users[0].email;
+      return users[0].email === currentUser.email
+        ? users[1].email
+        : users[0].email;
     }
 
-    return '~ No Name or Email ~';
+    return "~ No Name or Email ~";
   };
 
   const handleOnPress = async (chat) => {
@@ -121,11 +138,16 @@ const Chats = ({ setUnreadCount }) => {
     // Reset unread count for the selected chat
     setNewMessages((prev) => {
       const updatedMessages = { ...prev, [chatId]: 0 };
-      AsyncStorage.setItem('newMessages', JSON.stringify(updatedMessages));
-      setUnreadCount(Object.values(updatedMessages).reduce((total, num) => total + num, 0));
+      AsyncStorage.setItem("newMessages", JSON.stringify(updatedMessages));
+      setUnreadCount(
+        Object.values(updatedMessages).reduce((total, num) => total + num, 0)
+      );
       return updatedMessages;
     });
-    navigation.navigate('Chat', { id: chat.id, chatName: handleChatName(chat) });
+    navigation.navigate("Chat", {
+      id: chat.id,
+      chatName: handleChatName(chat),
+    });
     return null;
   };
 
@@ -148,16 +170,16 @@ const Chats = ({ setUnreadCount }) => {
   }, []); // Empty dependency array, since this doesn't rely on any state or props
 
   const handleFabPress = () => {
-    navigation.navigate('Users');
+    navigation.navigate("Users");
   };
 
   const handleDeleteChat = useCallback(() => {
     Alert.alert(
-      selectedItems.length > 1 ? 'Delete selected chats?' : 'Delete this chat?',
-      'Messages will be removed from this device.',
+      selectedItems.length > 1 ? "Delete selected chats?" : "Delete this chat?",
+      "Messages will be removed from this device.",
       [
         {
-          text: 'Delete chat',
+          text: "Delete chat",
           onPress: () => {
             selectedItems.forEach((chatId) => {
               const chat = chats.find((c) => c.id === chatId);
@@ -169,17 +191,23 @@ const Chats = ({ setUnreadCount }) => {
                     : user
                 );
 
-              setDoc(doc(database, 'chats', chatId), { users: updatedUsers }, { merge: true });
+              setDoc(
+                doc(database, "chats", chatId),
+                { users: updatedUsers },
+                { merge: true }
+              );
 
-              const deletedUsers = updatedUsers.filter((user) => user.deletedFromChat).length;
+              const deletedUsers = updatedUsers.filter(
+                (user) => user.deletedFromChat
+              ).length;
               if (deletedUsers === updatedUsers.length) {
-                deleteDoc(doc(database, 'chats', chatId));
+                deleteDoc(doc(database, "chats", chatId));
               }
             });
             deSelectItems();
           },
         },
-        { text: 'Cancel' },
+        { text: "Cancel" },
       ],
       { cancelable: true }
     );
@@ -193,7 +221,9 @@ const Chats = ({ setUnreadCount }) => {
             <Ionicons name="trash" size={24} color={colors.teal} />
           </TouchableOpacity>
         ),
-        headerLeft: () => <Text style={styles.itemCount}>{selectedItems.length}</Text>,
+        headerLeft: () => (
+          <Text style={styles.itemCount}>{selectedItems.length}</Text>
+        ),
       });
     } else {
       navigation.setOptions({
@@ -209,13 +239,14 @@ const Chats = ({ setUnreadCount }) => {
 
   const handleSubtitle = (chat) => {
     const message = chat.data().messages[0];
-    if (!message) return 'No messages yet';
+    console.log("this are message loading during chats screen load " + message);
+    if (!message) return "No messages yet";
 
     const isCurrentUser = auth?.currentUser?.email === message.user._id;
-    const userName = isCurrentUser ? 'You' : message.user.name.split(' ')[0];
+    const userName = isCurrentUser ? "You" : message.user.name.split(" ")[0];
     let messageText;
     if (message.image) {
-      messageText = 'sent an image';
+      messageText = "sent an image";
     } else if (message.text.length > 20) {
       messageText = `${message.text.substring(0, 20)}...`;
     } else {
@@ -226,8 +257,11 @@ const Chats = ({ setUnreadCount }) => {
   };
 
   const handleSubtitle2 = (chat) => {
-    const options = { year: '2-digit', month: 'numeric', day: 'numeric' };
-    return new Date(chat.data().lastUpdated).toLocaleDateString(undefined, options);
+    const options = { year: "2-digit", month: "numeric", day: "numeric" };
+    return new Date(chat.data().lastUpdated).toLocaleDateString(
+      undefined,
+      options
+    );
   };
 
   return (
@@ -259,8 +293,13 @@ const Chats = ({ setUnreadCount }) => {
           )}
           <View style={styles.blankContainer}>
             <Text style={{ fontSize: 12, margin: 15 }}>
-              <Ionicons name="lock-open" size={12} style={{ color: '#565656' }} /> Your personal
-              messages are not <Text style={{ color: colors.teal }}>end-to-end-encrypted</Text>
+              <Ionicons
+                name="lock-open"
+                size={12}
+                style={{ color: "#565656" }}
+              />{" "}
+              Your personal messages are not{" "}
+              <Text style={{ color: colors.teal }}>end-to-end-encrypted</Text>
             </Text>
           </View>
         </ScrollView>
@@ -276,37 +315,37 @@ const Chats = ({ setUnreadCount }) => {
 
 const styles = StyleSheet.create({
   blankContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   container: {
     flex: 1,
   },
   fab: {
     bottom: 12,
-    position: 'absolute',
+    position: "absolute",
     right: 12,
   },
   fabContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     backgroundColor: colors.teal,
     borderRadius: 28,
     height: 56,
-    justifyContent: 'center',
+    justifyContent: "center",
     width: 56,
   },
   itemCount: {
     color: colors.teal,
     fontSize: 18,
-    fontWeight: '400',
+    fontWeight: "400",
     left: 100,
   },
   loadingContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     color: colors.teal,
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   selectedContactRow: {
     backgroundColor: colors.grey,

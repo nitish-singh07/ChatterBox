@@ -1,12 +1,23 @@
-import PropTypes from 'prop-types';
-import uuid from 'react-native-uuid';
-import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import EmojiModal from 'react-native-emoji-modal';
-import React, { useState, useEffect, useCallback } from 'react';
-import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
-import { Send, Bubble, GiftedChat, InputToolbar } from 'react-native-gifted-chat';
-import { ref, getStorage, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
+import PropTypes from "prop-types";
+import uuid from "react-native-uuid";
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import EmojiModal from "react-native-emoji-modal";
+import React, { useState, useEffect, useCallback } from "react";
+import { doc, setDoc, getDoc, onSnapshot } from "firebase/firestore";
+import {
+  Send,
+  Bubble,
+  GiftedChat,
+  InputToolbar,
+} from "react-native-gifted-chat";
+import {
+  ref,
+  getStorage,
+  getDownloadURL,
+  uploadBytesResumable,
+} from "firebase/storage";
+
 import {
   View,
   Keyboard,
@@ -14,10 +25,10 @@ import {
   BackHandler,
   TouchableOpacity,
   ActivityIndicator,
-} from 'react-native';
+} from "react-native";
 
-import { colors } from '../config/constants';
-import { auth, database } from '../config/firebase';
+import { colors } from "../config/constants";
+import { auth, database } from "../config/firebase";
 
 const RenderLoadingUpload = () => (
   <View style={styles.loadingContainerUpload}>
@@ -36,7 +47,7 @@ const RenderBubble = (props) => (
     {...props}
     wrapperStyle={{
       right: { backgroundColor: colors.primary },
-      left: { backgroundColor: 'lightgrey' },
+      left: { backgroundColor: "lightgrey" },
     }}
   />
 );
@@ -52,10 +63,10 @@ const RenderAttach = (props) => (
 const RenderInputToolbar = (props, handleEmojiPanel) => (
   <View
     style={{
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       paddingVertical: 4,
-      backgroundColor: 'white',
+      backgroundColor: "white",
     }}
   >
     <InputToolbar
@@ -85,31 +96,40 @@ function Chat({ route }) {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(doc(database, 'chats', route.params.id), (document) => {
-      setMessages(
-        document.data().messages.map((message) => ({
-          ...message,
-          createdAt: message.createdAt.toDate(),
-          image: message.image ?? '',
-        }))
-      );
-    });
-
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      //  Dismiss the keyboard
-      Keyboard.dismiss();
-      //  If the emoji panel is open, close it
-      if (modal) {
-        setModal(false);
-        return true;
+    const unsubscribe = onSnapshot(
+      doc(database, "chats", route.params.id),
+      (document) => {
+        setMessages(
+          document.data().messages.map((message) => ({
+            ...message,
+            createdAt: message.createdAt.toDate(),
+            image: message.image ?? "",
+          }))
+        );
       }
-      return false;
-    });
+    );
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        //  Dismiss the keyboard
+        Keyboard.dismiss();
+        //  If the emoji panel is open, close it
+        if (modal) {
+          setModal(false);
+          return true;
+        }
+        return false;
+      }
+    );
 
     //  Dismiss the emoji panel when the keyboard is shown
-    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
-      if (modal) setModal(false);
-    });
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => {
+        if (modal) setModal(false);
+      }
+    );
 
     // Cleanup
     return () => {
@@ -122,14 +142,14 @@ function Chat({ route }) {
   const onSend = useCallback(
     async (m = []) => {
       // Get messages
-      const chatDocRef = doc(database, 'chats', route.params.id);
+      const chatDocRef = doc(database, "chats", route.params.id);
       const chatDocSnap = await getDoc(chatDocRef);
 
       const chatData = chatDocSnap.data();
       const data = chatData.messages.map((message) => ({
         ...message,
         createdAt: message.createdAt.toDate(),
-        image: message.image ?? '',
+        image: message.image ?? "",
       }));
 
       // Attach new message
@@ -137,7 +157,7 @@ function Chat({ route }) {
       const chatMessages = GiftedChat.append(data, messagesWillSend);
 
       setDoc(
-        doc(database, 'chats', route.params.id),
+        doc(database, "chats", route.params.id),
         {
           messages: chatMessages,
           lastUpdated: Date.now(),
@@ -165,9 +185,9 @@ function Chat({ route }) {
     const blob = await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.onload = () => resolve(xhr.response);
-      xhr.onerror = () => reject(new TypeError('Network request failed'));
-      xhr.responseType = 'blob';
-      xhr.open('GET', uri, true);
+      xhr.onerror = () => reject(new TypeError("Network request failed"));
+      xhr.responseType = "blob";
+      xhr.open("GET", uri, true);
       xhr.send(null);
     });
 
@@ -176,9 +196,10 @@ function Chat({ route }) {
     const uploadTask = uploadBytesResumable(fileRef, blob);
 
     uploadTask.on(
-      'state_changed',
+      "state_changed",
       (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         console.log(`Upload is ${progress}% done`);
       },
       (error) => {
@@ -192,12 +213,12 @@ function Chat({ route }) {
           {
             _id: randomString,
             createdAt: new Date(),
-            text: '',
+            text: "",
             image: downloadUrl,
             user: {
               _id: auth?.currentUser?.email,
               name: auth?.currentUser?.displayName,
-              avatar: 'https://i.pravatar.cc/300',
+              avatar: "https://i.pravatar.cc/300",
             },
           },
         ]);
@@ -227,18 +248,20 @@ function Chat({ route }) {
         showUserAvatar={false}
         onSend={(messagesArr) => onSend(messagesArr)}
         imageStyle={{ height: 212, width: 212 }}
-        messagesContainerStyle={{ backgroundColor: '#fff' }}
-        textInputStyle={{ backgroundColor: '#fff', borderRadius: 20 }}
+        messagesContainerStyle={{ backgroundColor: "#fff" }}
+        textInputStyle={{ backgroundColor: "#fff", borderRadius: 20 }}
         user={{
           _id: auth?.currentUser?.email,
           name: auth?.currentUser?.displayName,
-          avatar: 'https://i.pravatar.cc/300',
+          avatar: "https://i.pravatar.cc/300",
         }}
         renderBubble={(props) => RenderBubble(props)}
         renderSend={(props) => RenderAttach({ ...props, onPress: pickImage })}
         renderUsernameOnMessage
         renderAvatarOnTop
-        renderInputToolbar={(props) => RenderInputToolbar(props, handleEmojiPanel)}
+        renderInputToolbar={(props) =>
+          RenderInputToolbar(props, handleEmojiPanel)
+        }
         minInputToolbarHeight={56}
         scrollToBottom
         onPressActionButton={handleEmojiPanel}
@@ -264,7 +287,7 @@ function Chat({ route }) {
                 user: {
                   _id: auth?.currentUser?.email,
                   name: auth?.currentUser?.displayName,
-                  avatar: 'https://i.pravatar.cc/300',
+                  avatar: "https://i.pravatar.cc/300",
                 },
               },
             ]);
@@ -296,29 +319,29 @@ const styles = StyleSheet.create({
   },
   emojiModal: {},
   inputToolbar: {
-    alignItems: 'center',
-    backgroundColor: 'white',
+    alignItems: "center",
+    backgroundColor: "white",
     borderColor: colors.grey,
     borderRadius: 22,
     borderWidth: 0.5,
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: "row",
     marginHorizontal: 8,
     paddingHorizontal: 8,
     paddingVertical: 6,
   },
   loadingContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   loadingContainerUpload: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     bottom: 0,
-    justifyContent: 'center',
+    justifyContent: "center",
     left: 0,
-    position: 'absolute',
+    position: "absolute",
     right: 0,
     top: 0,
     zIndex: 999,
@@ -329,18 +352,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     bottom: 12,
     height: 56,
-    position: 'absolute',
+    position: "absolute",
     right: 12,
     width: 56,
   },
   sendIconContainer: {
-    alignItems: 'center',
-    backgroundColor: 'white',
+    alignItems: "center",
+    backgroundColor: "white",
     borderColor: colors.grey,
     borderRadius: 22,
     borderWidth: 0.5,
     height: 44,
-    justifyContent: 'center',
+    justifyContent: "center",
     marginRight: 8,
     width: 44,
   },

@@ -1,33 +1,33 @@
-import 'dotenv/config';
-import process from 'process';
+import "dotenv/config";
+import process from "process";
 
 export default {
   expo: {
-    name: 'react-native-chat',
-    slug: 'react-native-chat',
-    version: '1.0.0',
-    orientation: 'portrait',
-    icon: 'src/assets/icon.png',
-    userInterfaceStyle: 'light',
-    entryPoint: './src/App.js',
+    name: "chatter-box",
+    slug: "chatter-box",
+    version: "1.0.0",
+    orientation: "portrait",
+    icon: "src/assets/icon.png",
+    userInterfaceStyle: "light",
+    entryPoint: "./src/App.js",
     splash: {
-      image: 'src/assets/splash.png',
-      resizeMode: 'contain',
-      backgroundColor: '#ffffff',
+      image: "src/assets/splash.png",
+      resizeMode: "contain",
+      backgroundColor: "#ffffff",
     },
-    assetBundlePatterns: ['**/*'],
+    assetBundlePatterns: ["**/*"],
     ios: {
       supportsTablet: true,
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: 'src/assets/adaptive-icon.png',
-        backgroundColor: '#ffffff',
+        foregroundImage: "src/assets/adaptive-icon.png",
+        backgroundColor: "#ffffff",
       },
-      package: 'com.ctere1.reactnativechat',
+      package: "com.ctere1.reactnativechat",
     },
     web: {
-      favicon: 'src/assets/favicon.png',
+      favicon: "src/assets/favicon.png",
     },
     newArchEnabled: true,
     extra: {

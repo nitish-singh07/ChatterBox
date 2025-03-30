@@ -1,25 +1,30 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { Ionicons } from '@expo/vector-icons';
-import { View, Text, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
-import { Menu, MenuOption, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
+import React from "react";
+import PropTypes from "prop-types";
+import { Ionicons } from "@expo/vector-icons";
+import { View, Text, Alert } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
+import {
+  Menu,
+  MenuOption,
+  MenuOptions,
+  MenuTrigger,
+} from "react-native-popup-menu";
 
-import { auth, database } from '../config/firebase';
+import { auth, database } from "../config/firebase";
 
 const ChatMenu = ({ chatName, chatId }) => {
   const navigation = useNavigation();
 
   const handleDeleteChat = async () => {
     Alert.alert(
-      'Delete this chat?',
-      'Messages will be removed from this device.',
+      "Delete this chat?",
+      "Messages will be removed from this device.",
       [
         {
-          text: 'Delete chat',
+          text: "Delete chat",
           onPress: async () => {
-            const chatRef = doc(database, 'chats', chatId);
+            const chatRef = doc(database, "chats", chatId);
             const chatDoc = await getDoc(chatRef);
 
             if (chatDoc.exists()) {
@@ -33,7 +38,9 @@ const ChatMenu = ({ chatName, chatId }) => {
 
               await setDoc(chatRef, { users: updatedUsers }, { merge: true });
 
-              const deletedUsers = updatedUsers.filter((user) => user.deletedFromChat).length;
+              const deletedUsers = updatedUsers.filter(
+                (user) => user.deletedFromChat
+              ).length;
               if (deletedUsers === updatedUsers.length) {
                 await deleteDoc(chatRef);
               }
@@ -41,7 +48,7 @@ const ChatMenu = ({ chatName, chatId }) => {
             }
           },
         },
-        { text: 'Cancel' },
+        { text: "Cancel" },
       ],
       { cancelable: true }
     );
@@ -50,17 +57,28 @@ const ChatMenu = ({ chatName, chatId }) => {
   return (
     <Menu>
       <MenuTrigger>
-        <Ionicons name="ellipsis-vertical" size={25} color="black" style={{ marginRight: 15 }} />
+        <Ionicons
+          name="ellipsis-vertical"
+          size={25}
+          color="black"
+          style={{ marginRight: 15 }}
+        />
       </MenuTrigger>
       <MenuOptions>
-        <MenuOption onSelect={() => navigation.navigate('ChatInfo', { chatId, chatName })}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}>
-            <Text style={{ fontWeight: '500' }}>Chat Info</Text>
+        <MenuOption
+          onSelect={() => navigation.navigate("ChatInfo", { chatId, chatName })}
+        >
+          <View
+            style={{ flexDirection: "row", alignItems: "center", padding: 10 }}
+          >
+            <Text style={{ fontWeight: "500" }}>Chat Info</Text>
           </View>
         </MenuOption>
         <MenuOption onSelect={() => handleDeleteChat()}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}>
-            <Text style={{ fontWeight: '500' }}>Delete Chat</Text>
+          <View
+            style={{ flexDirection: "row", alignItems: "center", padding: 10 }}
+          >
+            <Text style={{ fontWeight: "500" }}>Delete Chat</Text>
           </View>
         </MenuOption>
         {/* Add more menu options here */}
